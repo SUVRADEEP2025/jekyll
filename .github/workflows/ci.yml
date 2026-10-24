@@ -1,0 +1,39 @@
+name: github pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: docker.io/jekyll/jekyll:latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@main
+      - name: cache jekyll dependencies
+        uses: actions/cache@main
+        with:
+          path: /srv/jekyll
+          key: jekyll-${{ runner.os }}-${{ hashFiles('Gemfile.lock') }}
+          restore-keys: |
+            jekyll-${{ runner.os }}-
+
+      - name: Build
+        run: bundle exec jekyll build --incremental
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@main
+        with:
+          path: ./_site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@main
